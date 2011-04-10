@@ -51,6 +51,10 @@ public class TerminalKeyListener implements OnKeyListener, OnSharedPreferenceCha
 	public final static int META_SLASH = 0x40;
 	public final static int META_TAB = 0x80;
 
+	//hack to map SYM key on ACER E130
+	boolean SymKeyPressed = false;
+
+
 	// The bit mask of momentary and lock states for each
 	public final static int META_CTRL_MASK = META_CTRL_ON | META_CTRL_LOCK;
 	public final static int META_ALT_MASK = META_ALT_ON | META_ALT_LOCK;
@@ -107,13 +111,21 @@ public class TerminalKeyListener implements OnKeyListener, OnSharedPreferenceCha
 	 */
 	public boolean onKey(View v, int keyCode, KeyEvent event) {
 		try {
+
 			final boolean hardKeyboardHidden = manager.hardKeyboardHidden;
+
+			//Log.d(TAG, "Keycode=" + keyCode + "hardkey" + hardKeyboardHidden);
+			//Log.d(TAG, "Hardkey " + hardKeyboard);
 
 			// Ignore all key-up events except for the special keys
 			if (event.getAction() == KeyEvent.ACTION_UP) {
 				// There's nothing here for virtual keyboard users.
 				if (!hardKeyboard || (hardKeyboard && hardKeyboardHidden))
 					return false;
+
+				// if (SymKeyPressed && keyCode==98) {
+				// 	SymKeyPressed = false;
+				// }
 
 				// skip keys if we aren't connected yet or have been disconnected
 				if (bridge.isDisconnected() || bridge.transport == null)
@@ -192,11 +204,54 @@ public class TerminalKeyListener implements OnKeyListener, OnSharedPreferenceCha
 				mDeadKey = 0;
 			}
 
+			if (keyCode == 98) {
+				//Log.d(TAG, "Sym key");
+				SymKeyPressed = !SymKeyPressed;
+				//Log.d(TAG, "Sym key stat" + SymKeyPressed);
+				return true;
+			}
+
+
 			final boolean printing = (key != 0);
+
+			//Log.d(TAG, "printing " + printing);
 
 			// otherwise pass through to existing session
 			// print normal keys
 			if (printing) {
+
+				if (SymKeyPressed) {
+					int result = -1;
+					if (key=='t') {
+						result = '{';
+					} else if (key=='y') {
+						result = '}';
+					}  else if (key=='/') {
+						result = '\\';
+					} else if (key=='q') {
+						result = 27; //escape
+					} else if (key=='i') {
+						result ='|';
+					} else if (key=='.') {
+						result = '<';
+					} else if (key==',') {
+						result = '>';
+					} else if (key=='v') {
+						result = '^';
+					} else if (key=='o') {
+						result = '[';
+					} else if (key=='p') {
+						result = ']';
+					} else if (key=='w') {
+						result = '~';
+					}
+					if (result!=-1) {
+						SymKeyPressed = false;
+						key = result;
+					}
+
+				}
+
 				metaState &= ~(META_SLASH | META_TAB);
 
 				// Remove shift and alt modifiers
