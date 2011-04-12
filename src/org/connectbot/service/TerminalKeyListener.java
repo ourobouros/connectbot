@@ -244,7 +244,9 @@ public class TerminalKeyListener implements OnKeyListener, OnSharedPreferenceCha
 						result = ']';
 					} else if (key=='w') {
 						result = '~';
-					}
+					} else if (key=='k') {
+        result = '`';
+}
 					if (result!=-1) {
 						SymKeyPressed = false;
 						key = result;
